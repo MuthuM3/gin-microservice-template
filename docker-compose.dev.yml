@@ -1,0 +1,159 @@
+# Docker compose for local development
+version: '3.8'
+
+services: 
+  # Development api with hot reloading
+  gin-microservice-dev:
+    build:
+      context: .
+      dockerFile: Dockerfile.dev
+    container_name: gin-microservice-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "2345:2345" # Delve debugger port
+    envoirnment:
+      # Development Configuration
+      APP_ENV: development
+      LOG_LEVEL: debug
+      LOG_FORMAT: text
+      PORT: 8000
+
+      # Database Configuration
+      DB_HOST: postgres-dev
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: root
+      DB_NAME: gin_microservice_dev
+      DB_SSL: disable
+
+      # Radis Configuration
+      RADIS_HOST: radis-dev
+      RADIS_PORT: 6379
+      RADIS_PASSWORD: radis_root
+
+      # Jwt Configuration (development only)
+      JWT_SECRET: dev-jwt-key
+
+      # Features flag
+      CACHE_ENABLED: true
+      MATRIX_ENABLED: true
+      RATE_LIMIT_ENABLED: false #Development No need you can enable for testing
+      CORS_ENABLED: true
+      ALLOWED_ORIGINS: "http://localhost:8080,http://localhost:8000,"
+
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+      - go-build-cache:/root/.cache/go-build
+    depends_on:
+      postgres-dev:
+        condition: service-healthy
+      radis-dev:
+        condition: service-healthy
+    networks:
+      - dev-networks
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 39s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL for development
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: gin-postgres-dev
+    restart: unless-stopped
+    envoirnment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: gin_microservice_dev
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collabte=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+      - ./scripts/dev-init.sql:/docker-entrypoint-initdb.d/99-dev-data.sql:ro
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD-SHALL", "pg_isready -U postgres -d gin_microservice_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    
+  # pgAdmin for Database Management (Optional)
+  pgadmin-dev:
+    image: dpage/pgadmin4:latest
+    container_name: gin-pgadmin-dev
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@gin-microservice.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-dev-data:/var/lib/pgadmin
+    depends_on:
+      - postgres-dev
+    networks:
+      - dev-network
+    profiles:
+      - tools  # Only start with: docker-compose --profile tools up
+
+  # Redis Commander for Redis Management (Optional)
+  redis-commander-dev:
+    image: rediscommander/redis-commander:latest
+    container_name: gin-redis-commander-dev
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis-dev:6379
+      REDIS_PASSWORD: redis_dev_123
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis-dev
+    networks:
+      - dev-network
+    profiles:
+      - tools  # Only start with: docker-compose --profile tools up
+
+  # MailHog for Email Testing (Optional)
+  mailhog-dev:
+    image: mailhog/mailhog:latest
+    container_name: gin-mailhog-dev
+    restart: unless-stopped
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    networks:
+      - dev-network
+    profiles:
+      - tools  # Only start with: docker-compose --profile tools up
+
+  volumes:
+    postgres-dev-data:
+      driver: local
+    redis-dev_data:
+      driver: local
+    pgadmin-dev-data:
+      driver: local
+    go-mod-cache:
+      driver: local
+    go-build-cache:
+      driver: local
+  
+  networks:
+    dev-network:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: 172.25.0.0/16
+
+
+    
