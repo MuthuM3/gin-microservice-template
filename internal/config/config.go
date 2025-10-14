@@ -6,6 +6,17 @@ import (
 )
 
 type Config struct {
+	Server      ServerConfig      `yaml:"server"`
+	Database    DatabaseConfig    `yaml:"database"`
+	JWT         JWTConfig         `yaml:"jwt"`
+	Logger      LoggerConfig      `yaml:"logger"`
+	RateLimit   RateLimitConfig   `yaml:"rate_Limit"`
+	CORS        CORSConfig        `yaml:"cors"`
+	Redis       RedisConfig       `yaml:"radis"`
+	Cache       CacheConfig       `yaml:"cache"`
+	Metrics     MetricsConfig     `yaml:"metrics"`
+	Security    SecurityConfig    `yaml:"security"`
+	Performance PerformanceConfig `yaml:"performance"`
 }
 
 // ServerConfig holds server-related configuration
