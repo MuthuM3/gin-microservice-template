@@ -39,7 +39,7 @@ type DatabaseConfig struct {
 	SSLMode         string        `yaml:"ssl_mode" env:"DB_SSL_MODE" default:"disable"`
 	MaxOpenConns    int           `yaml:"max_open_conns" default:"25"`
 	MaxIdleConns    int           `yaml:"max_idle_conns" default:"5"`
-	ConnMaxLifeTime time.Duration `yaml:"conn_max_lifetime" default:"5m"`
+	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime" default:"5m"`
 }
 
 // JWTConfig holds the jwt-related configuration
@@ -58,10 +58,10 @@ type LoggerConfig struct {
 
 // RateLimitConfig holds rate limit configuration
 type RateLimitConfig struct {
-	Enabled          bool          `yaml:"enabled" env:"RATE_LIMIT_ENABLED" default:"true"`
-	RequestPerWindow int           `yaml:"request_per_window" env:"RATE_LIMIT_REQUEST_PER_WINDOW" default:"100"`
-	Window           time.Duration `yaml:"window" env:"RATE_LIMIT_WINDOW" default:"1m"`
-	UserBased        bool          `yaml:"user_based" default:"false"`
+	Enabled           bool          `yaml:"enabled" env:"RATE_LIMIT_ENABLED" default:"true"`
+	RequestsPerWindow int           `yaml:"request_per_window" env:"RATE_LIMIT_REQUEST_PER_WINDOW" default:"100"`
+	Window            time.Duration `yaml:"window" env:"RATE_LIMIT_WINDOW" default:"1m"`
+	UserBased         bool          `yaml:"user_based" default:"false"`
 }
 
 // CORSConfig holds CORS configuration
@@ -78,7 +78,7 @@ type RedisConfig struct {
 	Host     string `yaml:"host" env:"REDIS_HOST" default:"localhost"`
 	Port     int    `yaml:"port" env:"REDIS_PORT" default:"6379"`
 	Password string `yaml:"password" env:"REDIS_PASSWORD" default:""`
-	Database string `yaml:"database" env:"REDIS_DATABASE" default:"0"`
+	Database int    `yaml:"database" env:"REDIS_DATABASE" default:"0"`
 }
 
 // GetConnectionString return the database connection string

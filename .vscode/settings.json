@@ -1,0 +1,35 @@
+{
+  "cSpell.enabledFileTypes": {
+    "go.mod": false,
+    "go": false
+  },
+  "go.useLanguageServer": true,
+  "gopls": {
+    "ui.completion.usePlaceholders": true,
+    "ui.completion.completionBudget": "500ms",
+    "ui.semanticTokens": true
+  },
+  "go.formatTool": "goimports",
+  "go.lintOnSave": "package",
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": false
+  },
+  "editor.suggestSelection": "first",
+  "editor.suggest.selectionMode": "always",
+  "editor.suggest.insertMode": "replace",
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.suggest.showWords": false,
+  "editor.suggest.localityBonus": true,
+  "editor.suggest.shareSuggestSelections": false,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.tabCompletion": "on",
+  "editor.quickSuggestionsDelay": 0,
+  "[go]": {
+    "editor.suggestSelection": "first",
+    "editor.suggest.selectionMode": "always",
+    "editor.suggest.insertMode": "replace"
+  }
+}
