@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -44,6 +45,20 @@ func Load(configPath string) (*Config, error) {
 
 	return cfg, nil
 }
+
+// LoadForEnvironment loads configuration based on the environment
+func LoadForEnvironment(env string) (*Config, error) {
+	configDir := os.Getenv("CONFIG_DIR")
+	if configDir == "" {
+		configDir = "configs"
+	}
+
+	configFile := fmt.Sprintf("%s.yaml", env)
+	configPath := filepath.Join(configDir, configFile)
+
+	return Load(configPath)
+}
+
 
 // set Defaults sets default values from the configration
 func setDefaults(cfg *Config) {

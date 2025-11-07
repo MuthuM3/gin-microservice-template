@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
 	"runtime"
 
 	"github.com/MuthuM3/gin-microservice-template/internal/config"
@@ -30,6 +32,16 @@ func main() {
 		return
 	}
 
+	cfg, err := LoadConfig(*configPath, *envPath)
+
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	logger := initLogger(cfg)
+	logger.Printf("Starting Todo API %s in %s mode", version, *envPath)
+
+	
 }
 
 func showVersion() {
@@ -43,5 +55,15 @@ func showVersion() {
 // Load Configuration
 func LoadConfig(configPath, env string) (*config.Config, error) {
 	if configPath != "" {
+		return config.Load(configPath)
 	}
+	return config.LoadForEnvironment(env)
+}
+
+func initLogger(cfg *config.Config) *log.Logger {
+	flags := log.LstdFlags
+	if cfg.Server.IsDevelopment() {
+		flags |= log.Lshortfile
+	}
+	return log.New(os.Stdout, "[TODO-API]", flags)
 }
