@@ -3,11 +3,13 @@ package postgres
 import "database/sql"
 
 type TodoStore struct {
-	db *sql.DB
+	db    *sql.DB
+	store *Store
 }
 
-func newTodoStore(db *sql.DB) *TodoStore {
+func newTodoStore(db *sql.DB, store *Store) *TodoStore {
 	return &TodoStore{
-		db: db,
+		db:    db,
+		store: store,
 	}
 }
