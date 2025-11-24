@@ -6,13 +6,13 @@ services:
   gin-microservice-dev:
     build:
       context: .
-      dockerFile: Dockerfile.dev
+      dockerfile: Dockerfile.dev
     container_name: gin-microservice-dev
     restart: unless-stopped
     ports:
       - "8000:8000"
       - "2345:2345" # Delve debugger port
-    envoirnment:
+    environment:
       # Development Configuration
       APP_ENV: development
       LOG_LEVEL: debug
@@ -27,10 +27,10 @@ services:
       DB_NAME: gin_microservice_dev
       DB_SSL: disable
 
-      # Radis Configuration
-      RADIS_HOST: radis-dev
-      RADIS_PORT: 6379
-      RADIS_PASSWORD: radis_root
+      # Redis Configuration
+      REDIS_HOST: redis-dev
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_root
 
       # Jwt Configuration (development only)
       JWT_SECRET: dev-jwt-key
@@ -50,10 +50,10 @@ services:
     depends_on:
       postgres-dev:
         condition: service-healthy
-      radis-dev:
+      redis-dev:
         condition: service-healthy
     networks:
-      - dev-networks
+      - dev-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 39s
@@ -66,7 +66,7 @@ services:
     image: postgres:15-alpine
     container_name: gin-postgres-dev
     restart: unless-stopped
-    envoirnment:
+    environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
       POSTGRES_DB: gin_microservice_dev
@@ -80,7 +80,7 @@ services:
     networks:
       - dev-network
     healthcheck:
-      test: ["CMD-SHALL", "pg_isready -U postgres -d gin_microservice_dev"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gin_microservice_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -136,24 +136,40 @@ services:
     profiles:
       - tools  # Only start with: docker-compose --profile tools up
 
-  volumes:
-    postgres-dev-data:
-      driver: local
-    redis-dev_data:
-      driver: local
-    pgadmin-dev-data:
-      driver: local
-    go-mod-cache:
-      driver: local
-    go-build-cache:
-      driver: local
-  
-  networks:
-    dev-network:
-      driver: bridge
-      ipam:
-        config:
-          - subnet: 172.25.0.0/16
+  # Redis for caching and sessions (Optional)
+  redis-dev:
+    image: redis:7-alpine
+    container_name: gin-redis-dev
+    restart: unless-stopped
+    command: redis-server --requirepass redis_root
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-dev-data:/data
+    networks:
+      - dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
+volumes:
+  postgres-dev-data:
+    driver: local
+  redis-dev-data:
+    driver: local
+  pgadmin-dev-data:
+    driver: local
+  go-mod-cache:
+    driver: local
+  go-build-cache:
+    driver: local
 
-    
+networks:
+  dev-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
